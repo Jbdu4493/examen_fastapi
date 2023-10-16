@@ -42,12 +42,17 @@ def on_startup():
     create_db_and_tables()
 
 def is_admin(usrpwd:str):
-    pass
+    user_name, password =usrpwd,u
+    with Session(engine) as session:
+        statement = select(User)
+        results = session.exec(statement)
+        for hero in results:
+            print(hero)
 
 @app.post("/questions/", name = "Creation du utilis")
 def create_question(usrpwd:Header(),question: Question):
     if not is_admin(usrpwd):
-        raise HTTPException(status_code=404, detail=f"The id {userid} has not been find to delete")
+        raise HTTPException(status_code=404, detail=f"Not allow, user is not admin")
     with Session(engine) as session:
         session.add(question)
         session.commit()
@@ -55,7 +60,7 @@ def create_question(usrpwd:Header(),question: Question):
         return question
 
 @app.post("/users/",name="Creation d'un utilisateur")
-def create_question(usrpwd:Header()user: User):
+def create_question(usrpwd:Header(),user: User):
     with Session(engine) as session:
         session.add(user)
         session.commit()
