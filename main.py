@@ -33,42 +33,72 @@ class Question(BaseModel):
 
 api = FastAPI(title="My QCM",
     description="Examen FastAPI",
-    version="1.0.1")
-    
+    version="1.0")
+
+def check_usrpwd(user_name,user_password):
+    password = users.get(user_name,None)
+    return (password is not None) and (user_password == password)
+          
 
 @api.post("/questions" ,
           name = "Creation d'un question",
           responses ={200: {"description": "OK"},
-                     409: {"description": "No allow to add question"}})
-def create_question(question: Question,Authorization:str = Header(str)):
+                      401 : {"description":"User password incorrect"},
+                      409: {"description": "No allow to add question"}})
+def create_question(question: Question,Authorization:str = Header()):
     """Fonction permettant a un admin de cree une question"""
+    user,password = Authorization.split(',')
+    if user != "admin":
+        raise  HTTPException(status_code=409,detail=f"The user {user} is not admin ")
+    elif check_usrpwd(user,password):
+        raise  HTTPException(status_code=401,detail=f"User password incorrect")
     line = io.StringIO(str(question))
     line_df = pd.read_json(io.StringIO(line))
     base_de_donnee =  pd.concat([base_de_donnee,line_df],axis=1)
     return {"detail":'OK'}
 
+
 @api.get("/questions",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
-                     403: {"description": "No allow to get all questions"}})
-def get_all(Authorization:str = Header(str)) -> list[Question]:
+                      401 : {"description":"User password incorrect"},
+                      409: {"description": "No allow to add question"}})
+def get_all(Authorization:str = Header()) -> list[Question]:
     """""Fonction permettant a un admin de voir toute les questions disponible """""
+    user,password = Authorization.split(',')
+    if user != "admin":
+        raise  HTTPException(status_code=409,detail=f"The user {user} is not admin ")
+    elif check_usrpwd(user,password):
+        raise  HTTPException(status_code=401,detail=f"User password incorrect")
     result = base_de_donnee.to_json(orient='records')
     return json.loads(result)
 
 
 @api.get("/questions/use",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
-                     403: {"description": "No allow to get question" },
-                     406: {"description": "Not enougth questions" }})
-def get_qcm_by_use(use: str, nb_question:int,Authorization:str = Header(str)):
-    result = base_de_donnee[base_de_donnee.use == use ].sample(nb_question).to_json(orient='records')
+                      401 : {"description":"User password incorrect"},
+                      406: {"description": "Not enougth questions " }})
+def get_qcm_by_use(use: str, nb_question:int,Authorization:str = Header()):
+    user,password = Authorization.split(',')
+    if check_usrpwd(user,password):
+        raise  HTTPException(status_code=401,detail=f"User password incorrect")
+    try:
+        result = base_de_donnee[base_de_donnee.use == use ].sample(nb_question).to_json(orient='records')
+    except ValueError:
+        raise  HTTPException(status_code=406,detail=f"Request too restrictive to raise {nb_question} questions")
     return json.loads(result) 
 
 
 @api.get("/questions/subjects",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
-                     403: {"description": "No allow to get question" },
-                     406: {"description": "Not enougth questions" }})
-def get_qcm_by_subjects(subjects: list[str], nb_question:int,Authorization:str = Header(str)):
-    result = base_de_donnee[base_de_donnee.subject.isin(subjects )].sample(nb_question).to_json(orient='records')
+                      401 : {"description":"User password incorrect"},
+                      406: {"description": "Not enougth questions " }})
+def get_qcm_by_subjects(subjects: list[str], nb_question:int,Authorization:str = Header()):
+    user,password = Authorization.split(',')
+    if check_usrpwd(user,password):
+        raise  HTTPException(status_code=401,detail=f"User password incorrect")
+    try:
+        result = base_de_donnee[base_de_donnee.subject.isin(subjects )].sample(nb_question).to_json(orient='records')
+    except ValueError:
+        raise  HTTPException(status_code=406,detail=f"Request too restrictive to raise {nb_question} questions")
     return json.loads(result) 
+   
