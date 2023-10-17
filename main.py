@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import pandas as pd 
-
+import io
 def create_db():
     df =  pd.read_csv("https://dst-de.s3.eu-west-3.amazonaws.com/fastapi_fr/questions.csv")
     df = df[~ df.correct.isna()]
@@ -36,18 +36,21 @@ api = FastAPI(title="My QCM",
     version="1.0.1")
     
 
-@api.post("/questions",
+@api.post("/questions" ,
           name = "Creation d'un question",
           responses ={200: {"description": "OK"},
                      409: {"description": "No allow to add question"}})
-def create_question(question: Question,Authorization:str = Header()):
+def create_question(question: Question,Authorization:str = Header(str)):
     """Fonction permettant a un admin de cree une question"""
+    line = io.StringIO(str(question))
+    line_df = pd.read_json(io.StringIO(line))
+    base_de_donnee =  pd.concat([base_de_donnee,line_df],axis=1)
     return {"detail":'OK'}
 
 @api.get("/questions",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
                      403: {"description": "No allow to get all questions"}})
-def get_all(Authorization:str = Header()) -> list[Question]:
+def get_all(Authorization:str = Header(str)) -> list[Question]:
     """""Fonction permettant a un admin de voir toute les questions disponible """""
     result = base_de_donnee.to_json(orient='records')
     return json.loads(result)
@@ -57,13 +60,15 @@ def get_all(Authorization:str = Header()) -> list[Question]:
           responses ={200: {"description": "OK"},
                      403: {"description": "No allow to get question" },
                      406: {"description": "Not enougth questions" }})
-def get_qcm_by_use(use: str, nb_question:int,Authorization:str = Header()):
-    return {"detail":'OK'}
+def get_qcm_by_use(use: str, nb_question:int,Authorization:str = Header(str)):
+    result = base_de_donnee[base_de_donnee.use == use ].sample(nb_question).to_json(orient='records')
+    return json.loads(result) 
 
 
 @api.get("/questions/subjects",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
                      403: {"description": "No allow to get question" },
                      406: {"description": "Not enougth questions" }})
-def get_qcm_by_subjects(subjects: list[str], nb_question:int,Authorization:str = Header()):
-    {"detail":'OK'}
+def get_qcm_by_subjects(subjects: list[str], nb_question:int,Authorization:str = Header(str)):
+    result = base_de_donnee[base_de_donnee.subject.isin(subjects )].sample(nb_question).to_json(orient='records')
+    return json.loads(result) 
