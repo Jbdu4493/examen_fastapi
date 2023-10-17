@@ -47,9 +47,9 @@ def create_question(question: Question,Authorization:str = Header()):
 @api.get("/questions",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
                      403: {"description": "No allow to get all questions"}})
-def get_all(question: Question,Authorization:str = Header()):
+def get_all(Authorization:str = Header()):
     """""Fonction permettant a un admin de voir toute les questions disponible """""
-    return {"detail":'OK'}
+    return base_de_donnee.to_json(orient='records',index=False)
 
 
 @api.get("/questions/use",name = "Retourn tout les questions disponible",
