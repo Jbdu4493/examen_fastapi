@@ -1,9 +1,10 @@
 from fastapi import Body,FastAPI, HTTPException,Header
-from pydantic import BaseModel
-from typing import Optional, Annotated
+from pydantic import BaseModel,constr, Field
+from typing import Optional, Annotated,List
 import json
 import pandas as pd 
 import io
+
 def create_db():
     df =  pd.read_csv("https://dst-de.s3.eu-west-3.amazonaws.com/fastapi_fr/questions.csv")
     df = df[~ df.correct.isna()]
@@ -14,26 +15,23 @@ def create_db():
 base_de_donnee = create_db()
 
 users = { 
-  "alice": "wonderland",
-  "bob": "builder",
-  "clementine": "mandarine",
   "admin" : "4dm1N",
   "joe":"biz"
 }
 class Question(BaseModel):
-    question: str
-    subject: str
-    use: str
-    correct: list[str]
-    responseA: str
-    responseB: str
-    responseC: Optional[str] = None
-    responseD:Optional[str] = None
-    remark: Optional[str] = None
+    question: str =Field( description="Libelle de la question")
+    subject: str =Field( description="Thème de la question")
+    use: str 
+    correct: list[str] = Field( description="Liste des bonne reponse ex. : 'A', 'B', 'C'  ou 'D' ")
+    responseA: str = Field( description="La proposition A")
+    responseB: str = Field( description="La proposition B ")
+    responseC: Optional[str] = Field( default=None, description="Liste des bonne reponse ")
+    responseD:Optional[str] = Field( default=None, description="Liste des bonne reponse ")
+    remark: Optional[str] = Field( default=None, description="Liste des bonne reponse ")
     
 class Request_Subjects(BaseModel):
-    subjects: list[str]
-    nb_question: int
+    subjects: list[str] = Field( description="Liste des sujets souhaités")
+    nb_question: int = Field( description="Nombre de question souhaité")
 
 class Request_Use(BaseModel):
     use: str
@@ -52,7 +50,7 @@ def check_usrpwd(user_name,user_password):
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       409: {"description": "No allow to add question"}})
-def get_all(Authorization:str = Header()) -> list[Question]:
+async def get_all(Authorization:str = Header()) -> list[Question]:
     """""Fonction permettant a un admin de voir toute les questions disponible """""
     user,password = Authorization.split(':')
     if user != "admin":
@@ -68,7 +66,7 @@ def get_all(Authorization:str = Header()) -> list[Question]:
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       409: {"description": "No allow to add question"}})
-def create_question(question: Question,Authorization:str = Header()):
+async def create_question(question: Question,Authorization:str = Header()):
     global base_de_donnee
     """Fonction permettant a un admin de cree une question"""
     user,password = Authorization.split(':')
@@ -88,7 +86,7 @@ def create_question(question: Question,Authorization:str = Header()):
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
-def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())-> list[Question]:
+async def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())-> list[Question]:
     user,password = Authorization.split(':')
     if not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect ")
@@ -104,7 +102,7 @@ def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())-> list[
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
 
-def get_qcm_by_subjects(resquest_subjects: Request_Subjects ,Authorization:str = Header())-> list[Question]:
+async def get_qcm_by_subjects(resquest_subjects: Request_Subjects ,Authorization:str = Header())-> list[Question]:
     user,password = Authorization.split(':')
     if not check_usrpwd(user,password):
 

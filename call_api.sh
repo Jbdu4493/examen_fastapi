@@ -15,15 +15,15 @@ echo -e '\n  ---------------------------- \n'
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: admin:4dm1N'\
-  -d '{"question": "string",
-  "subject": "string",
-  "use": "string",
-  "correct": ["string"],
-  "responseA": "string",
-  "responseB": "string",
-  "responseC": "string",
-  "responseD": "string",
-  "remark": "string"}'
+  -d '{"question": "Quelle est le meilleur instutue de formation en Data",
+  "subject": "Sondage",
+  "use": "Formation",
+  "correct": ["D"],
+  "responseA": "DataScientest.com",
+  "responseB": "Le wagon",
+  "responseC": "OpenClassroom",
+  "responseD": null,
+  "remark": null}'
 echo -e '\n  ---------------------------- \n'
   curl -X 'GET' \
   'http://localhost:8000/questions' \
