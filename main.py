@@ -1,4 +1,4 @@
-from fastapi import BodyFastAPI, HTTPException,Header
+from fastapi import Body,FastAPI, HTTPException,Header
 from pydantic import BaseModel
 from typing import Optional, Annotated
 import json
@@ -17,7 +17,8 @@ users = {
   "alice": "wonderland",
   "bob": "builder",
   "clementine": "mandarine",
-  "admin" : "4dm1N"
+  "admin" : "4dm1N",
+  "joe":"biz"
 }
 class Question(BaseModel):
     question: str
@@ -29,7 +30,8 @@ class Question(BaseModel):
     responseC: Optional[str] = None
     responseD:Optional[str] = None
     remark: Optional[str] = None
-    
+class Subjects:
+    subjects: list[str]
 
 api = FastAPI(title="My QCM",
     description="Examen FastAPI",
@@ -37,8 +39,23 @@ api = FastAPI(title="My QCM",
 
 def check_usrpwd(user_name,user_password):
     password = users.get(user_name,None)
-    return (password is not None) and (user_password == password)
+    return password == user_password
+
           
+@api.get("/questions",name = "Retourn tout les questions disponible",
+          responses ={200: {"description": "OK"},
+                      401 : {"description":"User password incorrect"},
+                      409: {"description": "No allow to add question"}})
+def get_all(Authorization:str = Header()) -> list[Question]:
+    """""Fonction permettant a un admin de voir toute les questions disponible """""
+    user,password = Authorization.split(':')
+    if user != "admin":
+        raise  HTTPException(status_code=409,detail=f"The user '{user}' is not a admin user ")
+    elif not check_usrpwd(user,password):
+        raise  HTTPException(status_code=401,detail=f"User password incorrect")
+    result = base_de_donnee.to_json(orient='records')
+    return json.loads(result)
+
 
 @api.post("/questions" ,
           name = "Creation d'un question",
@@ -46,41 +63,30 @@ def check_usrpwd(user_name,user_password):
                       401 : {"description":"User password incorrect"},
                       409: {"description": "No allow to add question"}})
 def create_question(question: Question,Authorization:str = Header()):
+    global base_de_donnee
     """Fonction permettant a un admin de cree une question"""
-    user,password = Authorization.split(',')
+    user,password = Authorization.split(':')
     if user != "admin":
         raise  HTTPException(status_code=409,detail=f"The user {user} is not admin ")
-    elif check_usrpwd(user,password):
+    elif not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
-    line = io.StringIO(str(question))
-    line_df = pd.read_json(io.StringIO(line))
-    base_de_donnee =  pd.concat([base_de_donnee,line_df],axis=1)
+    data = json.dumps([question.__dict__])
+    line_df = pd.read_json(io.StringIO(data))
+    print(line_df)
+    global base_de_donnee
+    base_de_donnee =  pd.concat([base_de_donnee,line_df],axis=0)
     return {"detail":'OK'}
 
 
-@api.get("/questions",name = "Retourn tout les questions disponible",
-          responses ={200: {"description": "OK"},
-                      401 : {"description":"User password incorrect"},
-                      409: {"description": "No allow to add question"}})
-def get_all(Authorization:str = Header()) -> list[Question]:
-    """""Fonction permettant a un admin de voir toute les questions disponible """""
-    user,password = Authorization.split(',')
-    if user != "admin":
-        raise  HTTPException(status_code=409,detail=f"The user {user} is not admin ")
-    elif check_usrpwd(user,password):
-        raise  HTTPException(status_code=401,detail=f"User password incorrect")
-    result = base_de_donnee.to_json(orient='records')
-    return json.loads(result)
-
-
-@api.get("/questions/use",name = "Retourn tout les questions disponible",
+@api.get("/questions/use/",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
-def get_qcm_by_use(use: str, nb_question:int,Authorization:str = Header()):
-    user,password = Authorization.split(',')
-    if check_usrpwd(user,password):
-        raise  HTTPException(status_code=401,detail=f"User password incorrect")
+def get_qcm_by_use(use:str, nb_question:int,Authorization:str = Header()):
+    user,password = Authorization.split(':')
+
+    if not check_usrpwd(user,password):
+        raise  HTTPException(status_code=401,detail=f"User password incorrect ")
     try:
         result = base_de_donnee[base_de_donnee.use == use ].sample(nb_question).to_json(orient='records')
     except ValueError:
@@ -88,13 +94,15 @@ def get_qcm_by_use(use: str, nb_question:int,Authorization:str = Header()):
     return json.loads(result) 
 
 
-@api.get("/questions/subjects",name = "Retourn tout les questions disponible",
+@api.get("/questions/subjects/",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
+
 def get_qcm_by_subjects(subjects: list[str], nb_question: Annotated[int, Body()],Authorization:str = Header()):
     user,password = Authorization.split(',')
     if check_usrpwd(user,password):
+
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
     try:
         result = base_de_donnee[base_de_donnee.subject.isin(subjects )].sample(nb_question).to_json(orient='records')
