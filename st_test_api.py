@@ -101,5 +101,39 @@ with tab3:
                                          'Content-Type': 'application/json',
                                         "Authorization":f"{username}:{password}"},
                                 json = body_question )
+with tab3:
+    
+
+    txt = st.text_area("Commande",""" curl -X 'GET' 'http://localhost:8000/questions/use' 
+-H 'accept: application/json'
+-H 'Content-Type: application/json'
+-H 'Authorization: joe:biz'
+-d '{"use":"Test de validation","nb_question":2}'""")
+    
+    st.markdown(""" ### Resultat de la requête""")
+    response = requests.get("http://localhost:8000/questions",headers={"accept":"application//json","Authorization":f"{username}:{password}"})
         
+    result =  response.json()
+    df = pd.DataFrame(result)    
+
+    uses = list(set(df.use))
+
+    text_nb_quest= st.text_input("Nombre de question")
+    selected_uses = st.selectbox(
+    "Selectionné l'utilisation: ",
+    uses)
+    try:
+        nb_ques = int(text_nb_quest)
+    except ValueError:
+        st.error('Le nombre de question doit etre un nombre entier pos', icon="🚨")
+
+
+
+    if st.button("Toutes les questions "):
+        response = requests.get("http://localhost:8000/questions",
+                                headers={"accept":"application//json",
+                                         "Authorization":f"{username}:{password}",
+                                         'Content-Type': 'application/json'},
+                                json={"use":selected_uses,"nb_question":nb_ques})
+
         

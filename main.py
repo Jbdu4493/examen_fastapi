@@ -25,33 +25,71 @@ class Question(BaseModel):
     correct: list[str] = Field( description="Liste des bonne reponse ex. : 'A', 'B', 'C'  ou 'D' ")
     responseA: str = Field( description="La proposition A")
     responseB: str = Field( description="La proposition B ")
-    responseC: Optional[str] = Field( default=None, description="Liste des bonne reponse ")
-    responseD:Optional[str] = Field( default=None, description="Liste des bonne reponse ")
-    remark: Optional[str] = Field( default=None, description="Liste des bonne reponse ")
+    responseC: Optional[str] = Field( default=None, description="La proposition C")
+    responseD: Optional[str] = Field( default=None, description="La proposition D")
+    remark: Optional[str] = Field( default=None, description="Remarque")
     
 class Request_Subjects(BaseModel):
     subjects: list[str] = Field( description="Liste des sujets souhaités")
-    nb_question: int = Field( description="Nombre de question souhaité")
+    nb_question: int = Field(gt=0, description="Nombre de question souhaité")
 
 class Request_Use(BaseModel):
-    use: str
-    nb_question: int
+    use: str = Field( description="")
+    nb_question: int = Field(gt=0, description="Nombre de question souhaité")
+class Utilisateur:
+    user_name: str =Field( description="Identifant de l'utilisateur")
+    password: str =Field( description="Mot de passe")
+
 
 api = FastAPI(title="My QCM",
     description="Examen FastAPI",
     version="1.0")
 
+
+
 def check_usrpwd(user_name,user_password):
     password = users.get(user_name,None)
     return password == user_password
 
-          
-@api.get("/questions",name = "Retourn tout les questions disponible",
+
+@api.post("/user" ,
+          name = "Creation d'un utilisateur",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       409: {"description": "No allow to add question"}})
-async def get_all(Authorization:str = Header()) -> list[Question]:
-    """""Fonction permettant a un admin de voir toute les questions disponible """""
+async def create_user(utilisateur: Utilisateur,Authorization:str = Header()):
+    global base_de_donnee
+    """Fonction permettant a un admin de cree une utilisateur"""
+    user,password = Authorization.split(':')
+    if user != "admin":
+        raise  HTTPException(status_code=409,detail=f"The user {user} is not admin ")
+    elif not check_usrpwd(user,password):
+        raise  HTTPException(status_code=401,detail=f"User password incorrect")
+    global users
+    users[utilisateur.user_name] = utilisateur.password
+    return {"detail":'OK'}
+
+@api.get("/user",name = "Retourne tout les utilisateur disponible",
+          responses ={200: {"description": "OK"},
+                      401 : {"description":"User password incorrect"},
+                      409: {"description": "No allow to add question"}})
+async def get_all_user(Authorization:str = Header()) -> list[Question]:
+    """""Fonction permettant a un admin de voir toute les utilisateur """""
+    user,password = Authorization.split(':')
+    if user != "admin":
+        raise  HTTPException(status_code=409,detail=f"The user '{user}' is not a admin user ")
+    elif not check_usrpwd(user,password):
+        raise  HTTPException(status_code=401,detail=f"User password incorrect")
+    
+    return list(users.keys())
+
+          
+@api.get("/questions",name = "Retourne tout les questions disponible",
+          responses ={200: {"description": "OK"},
+                      401 : {"description":"User password incorrect"},
+                      409: {"description": "No allow to add question"}})
+async def get_all_question(Authorization:str = Header()) -> list[Question]:
+    """""Fonction permettant a un admin de voir toutes les questions disponible """""
     user,password = Authorization.split(':')
     if user != "admin":
         raise  HTTPException(status_code=409,detail=f"The user '{user}' is not a admin user ")
@@ -82,7 +120,7 @@ async def create_question(question: Question,Authorization:str = Header()):
     return {"detail":'OK'}
 
 
-@api.get("/questions/use",name = "Retourn tout les questions disponible",
+@api.get("/questions/use",name = "Retourne tout les questions disponible pour un use donnée",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
@@ -97,7 +135,7 @@ async def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())->
     return json.loads(result) 
 
 
-@api.get("/questions/subjects",name = "Retourn tout les questions disponible",
+@api.get("/questions/subjects",name = "Retourne tout les questions disponible pour un liste de sujet donnée",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
