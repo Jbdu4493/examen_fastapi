@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException,Header
+from fastapi import BodyFastAPI, HTTPException,Header
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Annotated
 import json
 import pandas as pd 
 import io
@@ -92,7 +92,7 @@ def get_qcm_by_use(use: str, nb_question:int,Authorization:str = Header()):
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
-def get_qcm_by_subjects(subjects: list[str], nb_question:int,Authorization:str = Header()):
+def get_qcm_by_subjects(subjects: list[str], nb_question: Annotated[int, Body()],Authorization:str = Header()):
     user,password = Authorization.split(',')
     if check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
