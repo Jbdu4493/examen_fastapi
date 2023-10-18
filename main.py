@@ -73,7 +73,7 @@ def create_question(question: Question,Authorization:str = Header()):
     data = json.dumps([question.__dict__])
     line_df = pd.read_json(io.StringIO(data))
     print(line_df)
-    
+    global base_de_donnee
     base_de_donnee =  pd.concat([base_de_donnee,line_df],axis=0)
     return {"detail":'OK'}
 
