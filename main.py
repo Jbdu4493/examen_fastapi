@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException,Header,Body
+from fastapi import Body,FastAPI, HTTPException,Header
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Annotated
 import json
 import pandas as pd 
 import io
@@ -98,9 +98,11 @@ def get_qcm_by_use(use:str, nb_question:int,Authorization:str = Header()):
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
-def get_qcm_by_subjects(nb_question:int,subjects: list[str],Authorization:str = Header()):
-    user,password = Authorization.split(':')
-    if not check_usrpwd(user,password):
+
+def get_qcm_by_subjects(subjects: list[str], nb_question: Annotated[int, Body()],Authorization:str = Header()):
+    user,password = Authorization.split(',')
+    if check_usrpwd(user,password):
+
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
     try:
         result = base_de_donnee[base_de_donnee.subject.isin(subjects )].sample(nb_question).to_json(orient='records')
