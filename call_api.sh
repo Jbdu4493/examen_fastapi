@@ -9,6 +9,21 @@ echo -e '\n  ---------------------------- \n'
   'http://localhost:8000/questions' \
   -H 'accept: application/json' \
   -H 'Authorization: amin:4dm12'
+  echo -e '\n  ---------------------------- \n'
+  curl -X 'POST' \
+  'http://localhost:8000/users' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: admin:4dm1N'\
+  -d '{
+  "user_name": "user_test",
+  "password": "123456789"}'
+echo -e '\n  ---------------------------- \n'
+curl -X 'GET' \
+  'http://localhost:8000/users' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: admin:4dm1N'
 echo -e '\n  ---------------------------- \n'
   curl -X 'POST' \
   'http://localhost:8000/questions' \
@@ -38,12 +53,13 @@ curl -X 'GET' \
   -H 'Authorization: joe:biz'\
   -d '{"subjects":["Data Science","Classification"],"nb_question":2}'
 
+echo -e '\n  ---------------------------- \n'
 
 curl -X 'GET' \
   'http://localhost:8000/questions/use' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: joe:biz'\
+  -H 'Authorization: user_test:123456789'\
   -d '{"use":"Test de validation","nb_question":2}'
 
 

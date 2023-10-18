@@ -34,16 +34,33 @@ class Request_Subjects(BaseModel):
     nb_question: int = Field(gt=0, description="Nombre de question souhaité")
 
 class Request_Use(BaseModel):
-    use: str = Field( description="")
+    use: str = Field( description="Use")
     nb_question: int = Field(gt=0, description="Nombre de question souhaité")
-class Utilisateur:
-    user_name: str =Field( description="Identifant de l'utilisateur")
-    password: str =Field( description="Mot de passe")
+
+class Utilisateur(BaseModel):
+    user_name: str = Field( description="Identifant de l'utilisateur")
+    password: str  = Field( description="Mot de passe")
 
 
 api = FastAPI(title="My QCM",
     description="Examen FastAPI",
-    version="1.0")
+    version="1.0",
+    openapi_tags=[
+    {
+        'name': 'utilisateur',
+        'description': 'Fonctionnalité dediée à la gestion utilisateur'
+    },
+    {
+        'name': 'question',
+        'description': 'Fonctionnalité dediée à la gestion des question'
+    },
+    
+    {
+        'name': 'admin',
+        'description': "Fonctionnalité dediée à l'admin"
+    }
+])
+    
 
 
 
@@ -52,13 +69,13 @@ def check_usrpwd(user_name,user_password):
     return password == user_password
 
 
-@api.post("/user" ,
+@api.post("/users" ,
           name = "Creation d'un utilisateur",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      409: {"description": "No allow to add question"}})
+                      409: {"description": "No allow to add question"}},
+          tags=['utilisateur','admin']  )
 async def create_user(utilisateur: Utilisateur,Authorization:str = Header()):
-    global base_de_donnee
     """Fonction permettant a un admin de cree une utilisateur"""
     user,password = Authorization.split(':')
     if user != "admin":
@@ -69,11 +86,12 @@ async def create_user(utilisateur: Utilisateur,Authorization:str = Header()):
     users[utilisateur.user_name] = utilisateur.password
     return {"detail":'OK'}
 
-@api.get("/user",name = "Retourne tout les utilisateur disponible",
+@api.get("/users",name = "Retourne tout les utilisateur disponible",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      409: {"description": "No allow to add question"}})
-async def get_all_user(Authorization:str = Header()) -> list[Question]:
+                      409: {"description": "No allow to add question"}},
+          tags=['utilisateur','admin'] )
+async def get_all_user(Authorization:str = Header()) -> list[str]:
     """""Fonction permettant a un admin de voir toute les utilisateur """""
     user,password = Authorization.split(':')
     if user != "admin":
@@ -87,7 +105,8 @@ async def get_all_user(Authorization:str = Header()) -> list[Question]:
 @api.get("/questions",name = "Retourne tout les questions disponible",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      409: {"description": "No allow to add question"}})
+                      409: {"description": "No allow to add question"}},
+          tags=['question','admin'] )
 async def get_all_question(Authorization:str = Header()) -> list[Question]:
     """""Fonction permettant a un admin de voir toutes les questions disponible """""
     user,password = Authorization.split(':')
@@ -103,7 +122,8 @@ async def get_all_question(Authorization:str = Header()) -> list[Question]:
           name = "Creation d'un question",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      409: {"description": "No allow to add question"}})
+                      409: {"description": "No allow to add question"}},
+          tags=['question','admin'] )
 async def create_question(question: Question,Authorization:str = Header()):
     global base_de_donnee
     """Fonction permettant a un admin de cree une question"""
@@ -123,8 +143,10 @@ async def create_question(question: Question,Authorization:str = Header()):
 @api.get("/questions/use",name = "Retourne tout les questions disponible pour un use donnée",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      406: {"description": "Not enougth questions " }})
+                      406: {"description": "Not enougth questions " }},
+          tags=['question'] )
 async def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())-> list[Question]:
+    """Retourne tout les questions disponible pour un use donnée"""
     user,password = Authorization.split(':')
     if not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect ")
@@ -138,9 +160,11 @@ async def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())->
 @api.get("/questions/subjects",name = "Retourne tout les questions disponible pour un liste de sujet donnée",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      406: {"description": "Not enougth questions " }})
+                      406: {"description": "Not enougth questions " }},
+          tags=['question','admin'] )
 
 async def get_qcm_by_subjects(resquest_subjects: Request_Subjects ,Authorization:str = Header())-> list[Question]:
+    """Retourne tout les questions disponible pour un liste de sujet donnée"""
     user,password = Authorization.split(':')
     if not check_usrpwd(user,password):
 
