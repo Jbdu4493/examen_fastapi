@@ -30,8 +30,14 @@ class Question(BaseModel):
     responseC: Optional[str] = None
     responseD:Optional[str] = None
     remark: Optional[str] = None
-class Subjects:
+    
+class Request_Subjects(BaseModel):
     subjects: list[str]
+    nb_question: int
+
+class Request_Use(BaseModel):
+    use: str
+    nb_question: int
 
 api = FastAPI(title="My QCM",
     description="Examen FastAPI",
@@ -78,35 +84,34 @@ def create_question(question: Question,Authorization:str = Header()):
     return {"detail":'OK'}
 
 
-@api.get("/questions/use/",name = "Retourn tout les questions disponible",
+@api.get("/questions/use",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
-def get_qcm_by_use(use:str, nb_question:int,Authorization:str = Header()):
+def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())-> list[Question]:
     user,password = Authorization.split(':')
-
     if not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect ")
     try:
-        result = base_de_donnee[base_de_donnee.use == use ].sample(nb_question).to_json(orient='records')
+        result = base_de_donnee[base_de_donnee.use == request_use.use ].sample(request_use.nb_question).to_json(orient='records')
     except ValueError:
-        raise  HTTPException(status_code=406,detail=f"Request too restrictive to raise {nb_question} questions")
+        raise  HTTPException(status_code=406,detail=f"Request too restrictive to raise {request_use.nb_question} questions")
     return json.loads(result) 
 
 
-@api.get("/questions/subjects/",name = "Retourn tout les questions disponible",
+@api.get("/questions/subjects",name = "Retourn tout les questions disponible",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }})
 
-def get_qcm_by_subjects(subjects: list[str], nb_question: Annotated[int, Body()],Authorization:str = Header()):
-    user,password = Authorization.split(',')
-    if check_usrpwd(user,password):
+def get_qcm_by_subjects(resquest_subjects: Request_Subjects ,Authorization:str = Header())-> list[Question]:
+    user,password = Authorization.split(':')
+    if not check_usrpwd(user,password):
 
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
     try:
-        result = base_de_donnee[base_de_donnee.subject.isin(subjects )].sample(nb_question).to_json(orient='records')
+        result = base_de_donnee[base_de_donnee.subject.isin(resquest_subjects.subjects )].sample(resquest_subjects.nb_question).to_json(orient='records')
     except ValueError:
-        raise  HTTPException(status_code=406,detail=f"Request too restrictive to raise {nb_question} questions")
+        raise  HTTPException(status_code=406,detail=f"Request too restrictive to raise {resquest_subjects.nb_question} questions")
     return json.loads(result) 
    

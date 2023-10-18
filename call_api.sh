@@ -32,12 +32,18 @@ echo -e '\n  ---------------------------- \n'
 echo -e '\n  ---------------------------- \n'
 
 curl -X 'GET' \
-  'http://localhost:8000/questions/use?use=Test%20de%20validation&nb_question=20' \
-    -H 'accept: application/json' \
-    -H 'Authorization: admin:4dm1N'
+  'http://localhost:8000/questions/subjects' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: joe:biz'\
+  -d '{"subjects":["Data Science","Classification"],"nb_question":2}'
+
 
 curl -X 'GET' \
-  'http://localhost:8000/questions/subjects?nb_question=4' \
+  'http://localhost:8000/questions/use' \
   -H 'accept: application/json' \
-  -H 'Authorization: joe:biz' \
-  -d '["Data Science","Classification"]'
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: joe:biz'\
+  -d '{"use":"Test de validation","nb_question":2}'
+
+
