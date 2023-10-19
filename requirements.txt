@@ -10,7 +10,6 @@ click
 fastapi
 gitdb
 GitPython
-httptools
 idna
 importlib-metadata
 Jinja2
@@ -51,3 +50,4 @@ urllib3
 uvloop
 validators
 zipp
+httptools==0.1.* 
