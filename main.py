@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException,Header
 from pydantic import BaseModel,constr, Field
-from typing import Optional
+from typing import Optional, List
 import json
 import pandas as pd 
 import io
@@ -22,7 +22,7 @@ class Question(BaseModel):
     question: str =Field( description="Libelle de la question")
     subject: str =Field( description="Thème de la question")
     use: str 
-    correct: list[str] = Field( description="Liste des bonne reponse ex. : 'A', 'B', 'C'  ou 'D' ")
+    correct: List[str] = Field( description="Liste des bonne reponse ex. : 'A', 'B', 'C'  ou 'D' ")
     responseA: str = Field( description="La proposition A")
     responseB: str = Field( description="La proposition B ")
     responseC: Optional[str] = Field( default=None, description="La proposition C")
@@ -30,7 +30,7 @@ class Question(BaseModel):
     remark: Optional[str] = Field( default=None, description="Remarque")
     
 class Request_Subjects(BaseModel):
-    subjects: list[str] = Field( description="Liste des sujets souhaités")
+    subjects: List[str] = Field( description="Liste des sujets souhaités")
     nb_question: int = Field(gt=0, description="Nombre de question souhaité")
 
 class Request_Use(BaseModel):
