@@ -9,4 +9,5 @@ Amélioration possible:
 - un dockerfile
 - Utlisation d'un vrai base de donnée (SQLITE,NoSQL)
 - Sécuriser l'API
+- CI/CD
 
