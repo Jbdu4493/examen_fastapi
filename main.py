@@ -162,7 +162,6 @@ async def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())->
                       401 : {"description":"User password incorrect"},
                       406: {"description": "Not enougth questions " }},
           tags=['question','admin'] )
-
 async def get_qcm_by_subjects(resquest_subjects: Request_Subjects ,Authorization:str = Header())-> list[Question]:
     """Retourne tout les questions disponible pour un liste de sujet donnée"""
     user,password = Authorization.split(':')
