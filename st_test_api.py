@@ -8,7 +8,7 @@ st.sidebar.title("Connexion")
 
 username = st.sidebar.text_input("Nom d'utilisateur",value="admin")
 password = st.sidebar.text_input("Mot de passe",value='4dm1N' ,type="password")
-
+ip_server = st.sidebar.text_input("adresse IP du server de API",value='localhost')
 tab1, tab2, tab3,tab4,tab5,tab6,tab7 = st.tabs(['**Introduction**',
                               "**Voir les questions**",
                               "**Créer question**",
@@ -39,7 +39,7 @@ with tab2:
     st.markdown(""" ### Resultat de la requête""")
     if st.button("Toutes les questions "):
     
-        response = requests.get("http://localhost:8000/questions",headers={"accept":"application//json","Authorization":f"{username}:{password}"})
+        response = requests.get(f"http://{ip_server}:8000/questions",headers={"accept":"application//json","Authorization":f"{username}:{password}"})
         if response.status_code ==200:
             result =  response.json()
             df = pd.DataFrame(result)
@@ -99,7 +99,7 @@ with tab3:
     "responseD": text_responseD if text_responseD != "" else None,
     "remark": text_remark if text_remark !=  "" else None }
     if st.button("Ajouter question"):
-        response = requests.post(url="http://localhost:8000/questions",
+        response = requests.post(url=f"http://{ip_server}:8000/questions",
                                 headers={"accept":"application//json",
                                          'Content-Type': 'application/json',
                                         "Authorization":f"{username}:{password}"},
@@ -120,7 +120,7 @@ with tab4:
 -d '{"subject":"Test de validation","nb_question":2}'""")
     
     st.markdown(""" ### Resultat de la requête""")
-    response = requests.get("http://localhost:8000/questions",headers={"accept":"application//json","Authorization":f"{username}:{password}"})
+    response = requests.get(f"http://{ip_server}:8000/questions",headers={"accept":"application//json","Authorization":f"{username}:{password}"})
 
     if response.status_code ==200:
             result =  response.json()
@@ -141,7 +141,7 @@ with tab4:
 
 
     if st.button("Requêter",key='req_use'):
-        response = requests.get("http://localhost:8000/questions/use",
+        response = requests.get("http://{ip_server}:8000/questions/use",
                                 headers={"accept":"application//json",
                                          "Authorization":f"{username}:{password}",
                                          'Content-Type': 'application/json'},
@@ -164,7 +164,7 @@ with tab5:
   -d '{"subjects":["Data Science","Classification"],"nb_question":2}'""")
     
     st.markdown(""" ### Resultat de la requête""")
-    response = requests.get("http://localhost:8000/questions",headers={"accept":"application//json","Authorization":f"{username}:{password}"})
+    response = requests.get(f"http://{ip_server}:8000/questions",headers={"accept":"application//json","Authorization":f"{username}:{password}"})
     subject = []
     if response.status_code ==200:
             result =  response.json()
@@ -184,7 +184,7 @@ with tab5:
 
 
     if st.button("Requêter",key='req_subj'):
-        response = requests.get("http://localhost:8000/questions/subjects",
+        response = requests.get(f"http://{ip_server}:8000/questions/subjects",
                                 headers={"accept":"application//json",
                                          "Authorization":f"{username}:{password}",
                                          'Content-Type': 'application/json'},
@@ -206,7 +206,7 @@ with tab6:
   -H 'Authorization: admin:4dm1N' """)
     st.markdown(""" ### Resultat de la requête""")
     if st.button("Requêter",key='req_user'):
-        response = requests.get("http://localhost:8000/users",headers={"accept":"application//json","Authorization":f"{username}:{password}"})
+        response = requests.get(f"http://{ip_server}:8000/users",headers={"accept":"application//json","Authorization":f"{username}:{password}"})
     
         if response.status_code ==200:
             
@@ -233,7 +233,7 @@ with tab7:
     st.markdown(""" ### Tester de la requête""")
     if st.button("Requêter",key='req_user_add'):
         user1 = {"user_name": text_username,"password": text_password}
-        response = requests.post("http://localhost:8000/users",
+        response = requests.post(f"http://{ip_server}:8000/users",
                                 headers={"accept":"application//json","Authorization":f"{username}:{password}"},
                                 json = user1 )
     
