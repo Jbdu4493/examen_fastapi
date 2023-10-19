@@ -91,7 +91,7 @@ async def create_user(utilisateur: Utilisateur,Authorization:str = Header()):
                       401 : {"description":"User password incorrect"},
                       409: {"description": "No allow to add question"}},
           tags=['utilisateur','admin'] )
-async def get_all_user(Authorization:str = Header()) -> list[str]:
+async def get_all_user(Authorization:str = Header()) -> list[Utilisateur]:
     """""Fonction permettant a un admin de voir toute les utilisateur """""
     user,password = Authorization.split(':')
     if user != "admin":
@@ -99,7 +99,7 @@ async def get_all_user(Authorization:str = Header()) -> list[str]:
     elif not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
     
-    return list(users.keys())
+    return users
 
           
 @api.get("/questions",name = "Retourne tout les questions disponible",
