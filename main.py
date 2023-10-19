@@ -48,11 +48,11 @@ api = FastAPI(title="My QCM",
     openapi_tags=[
     {
         'name': 'utilisateur',
-        'description': 'Fonctionnalité dediée à la gestion utilisateur'
+        'description': 'Fonctionnalité dediée à la gestion des utilisateurs'
     },
     {
         'name': 'question',
-        'description': 'Fonctionnalité dediée à la gestion des question'
+        'description': 'Fonctionnalité dediée à la gestion des questions'
     },
     
     {
@@ -60,9 +60,6 @@ api = FastAPI(title="My QCM",
         'description': "Fonctionnalité dediée à l'admin"
     }
 ])
-    
-
-
 
 def check_usrpwd(user_name,user_password):
     password = users.get(user_name,None)
@@ -73,45 +70,44 @@ def check_usrpwd(user_name,user_password):
           name = "Creation d'un utilisateur",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      409: {"description": "No allow to add question"}},
+                      403: {"description": "No allow to add question"}},
           tags=['utilisateur','admin']  )
 async def create_user(utilisateur: Utilisateur,Authorization:str = Header()):
-    """Fonction permettant a un admin de cree une utilisateur"""
+    """Fonction permettant a un admin de creer un utilisateur"""
     user,password = Authorization.split(':')
     if user != "admin":
-        raise  HTTPException(status_code=409,detail=f"The user {user} is not admin ")
+        raise  HTTPException(status_code=403,detail=f"The user {user} is not admin ")
     elif not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
     global users
     users[utilisateur.user_name] = utilisateur.password
     return {"detail":'OK'}
 
-@api.get("/users",name = "Retourne tout les utilisateur disponible",
+@api.get("/users",name = "Retourne tout les utilisateurs disponible",
           responses ={200: {"description": "OK"},
-                      401 : {"description":"User password incorrect"},
-                      409: {"description": "No allow to add question"}},
+                      402 : {"description":"User password incorrect"},
+                      403: {"description": "No allow to add question"}},
           tags=['utilisateur','admin'] )
-async def get_all_user(Authorization:str = Header()) -> list[Utilisateur]:
-    """""Fonction permettant a un admin de voir toute les utilisateur """""
+async def get_all_user(Authorization:str = Header()):
+    """""Fonction permettant a un admin de voir toute les utilisateurs """""
     user,password = Authorization.split(':')
     if user != "admin":
         raise  HTTPException(status_code=409,detail=f"The user '{user}' is not a admin user ")
     elif not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
-    
     return users
 
           
 @api.get("/questions",name = "Retourne tout les questions disponible",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      409: {"description": "No allow to add question"}},
+                      403: {"description": "No allow to add question"}},
           tags=['question','admin'] )
 async def get_all_question(Authorization:str = Header()) -> list[Question]:
     """""Fonction permettant a un admin de voir toutes les questions disponible """""
     user,password = Authorization.split(':')
     if user != "admin":
-        raise  HTTPException(status_code=409,detail=f"The user '{user}' is not a admin user ")
+        raise  HTTPException(status_code=403,detail=f"The user '{user}' is not a admin user ")
     elif not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
     result = base_de_donnee.to_json(orient='records')
@@ -122,14 +118,14 @@ async def get_all_question(Authorization:str = Header()) -> list[Question]:
           name = "Creation d'un question",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      409: {"description": "No allow to add question"}},
+                      403: {"description": "No allow to add question"}},
           tags=['question','admin'] )
 async def create_question(question: Question,Authorization:str = Header()):
     global base_de_donnee
-    """Fonction permettant a un admin de cree une question"""
+    """Fonction permettant à un admin de creer une question"""
     user,password = Authorization.split(':')
     if user != "admin":
-        raise  HTTPException(status_code=409,detail=f"The user {user} is not admin ")
+        raise  HTTPException(status_code=403,detail=f"The user {user} is not admin ")
     elif not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect")
     data = json.dumps([question.__dict__])
@@ -140,30 +136,30 @@ async def create_question(question: Question,Authorization:str = Header()):
     return {"detail":'OK'}
 
 
-@api.get("/questions/use",name = "Retourne tout les questions disponible pour un use donnée",
+@api.get("/questions/use",name = "Retourne toutes les questions disponibles pour un use donné",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      406: {"description": "Not enougth questions " }},
+                      400: {"description": "Not enougth questions " }},
           tags=['question'] )
 async def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())-> list[Question]:
-    """Retourne tout les questions disponible pour un use donnée"""
+    """Retourne toutes les questions disponible pour un use donné"""
     user,password = Authorization.split(':')
     if not check_usrpwd(user,password):
         raise  HTTPException(status_code=401,detail=f"User password incorrect ")
     try:
         result = base_de_donnee[base_de_donnee.use == request_use.use ].sample(request_use.nb_question).to_json(orient='records')
     except ValueError:
-        raise  HTTPException(status_code=406,detail=f"Request too restrictive to raise {request_use.nb_question} questions")
+        raise  HTTPException(status_code=400,detail=f"Request too restrictive to raise {request_use.nb_question} questions")
     return json.loads(result) 
 
 
-@api.get("/questions/subjects",name = "Retourne tout les questions disponible pour un liste de sujet donnée",
+@api.get("/questions/subjects",name = "Retourne toutes les questions disponible pour une liste de sujet donnée",
           responses ={200: {"description": "OK"},
                       401 : {"description":"User password incorrect"},
-                      406: {"description": "Not enougth questions " }},
+                      400: {"description": "Not enougth questions " }},
           tags=['question','admin'] )
 async def get_qcm_by_subjects(resquest_subjects: Request_Subjects ,Authorization:str = Header())-> list[Question]:
-    """Retourne tout les questions disponible pour un liste de sujet donnée"""
+    """Retourne toutes les questions disponible pour une liste de sujet donnée"""
     user,password = Authorization.split(':')
     if not check_usrpwd(user,password):
 
@@ -171,6 +167,6 @@ async def get_qcm_by_subjects(resquest_subjects: Request_Subjects ,Authorization
     try:
         result = base_de_donnee[base_de_donnee.subject.isin(resquest_subjects.subjects )].sample(resquest_subjects.nb_question).to_json(orient='records')
     except ValueError:
-        raise  HTTPException(status_code=406,detail=f"Request too restrictive to raise {resquest_subjects.nb_question} questions")
+        raise  HTTPException(status_code=400,detail=f"Request too restrictive to raise {resquest_subjects.nb_question} questions")
     return json.loads(result) 
    

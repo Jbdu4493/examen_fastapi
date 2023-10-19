@@ -63,3 +63,7 @@ curl -X 'GET' \
   -d '{"use":"Test de validation","nb_question":2}'
 
 
+  curl -X 'GET' \
+  'http://localhost:8000/users' \
+  -H 'accept: application/json' \
+  -H 'Authorization: admin:4dm1N'
