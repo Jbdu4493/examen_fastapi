@@ -172,6 +172,7 @@ with tab5:
             subject = list(set(df.subject))
 
     txt_subject = st.text_area("Sujet possible", ','.join(subject))
+    st.text("Effacer les sujets que vous ne souhaitez pas ou ajouter s'en avec les separateur ','")
 
     text_nb_quest= st.text_input("Nombre de question ",'4')
     all_subject= txt_subject.split(',')
