@@ -20,11 +20,11 @@ tab1, tab2, tab3,tab4,tab5,tab6,tab7 = st.tabs(['**Introduction**',
 
 
 with tab1:
-    st.markdown(""" ### Présentation
+    st.markdown(f""" ### Présentation
 
 -   Chaque onglet correspond a un fonctionnalité fourni par l'api 
 -   <- 2 mot de passe sont a saisir user/pwd ("admin", "4dm1N") et ("joe","biz") 
-- [Lien OPENAPI](http://127.0.0.1:8000/docs)
+- [Lien OPENAPI](http://{ip_server}:8000/docs)
  ### Authantification
 L'utilisateur  et mot de passe sera passer via le header ***Authorization*** .
 
