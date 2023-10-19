@@ -103,7 +103,7 @@ async def get_all_user(Authorization:str = Header()):
                       401 : {"description":"User password incorrect"},
                       403: {"description": "No allow to add question"}},
           tags=['question','admin'] )
-async def get_all_question(Authorization:str = Header()) -> list[Question]:
+async def get_all_question(Authorization:str = Header()) -> List[Question]:
     """""Fonction permettant a un admin de voir toutes les questions disponible """""
     user,password = Authorization.split(':')
     if user != "admin":
@@ -141,7 +141,7 @@ async def create_question(question: Question,Authorization:str = Header()):
                       401 : {"description":"User password incorrect"},
                       400: {"description": "Not enougth questions " }},
           tags=['question'] )
-async def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())-> list[Question]:
+async def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())-> List[Question]:
     """Retourne toutes les questions disponible pour un use donné"""
     user,password = Authorization.split(':')
     if not check_usrpwd(user,password):
@@ -158,7 +158,7 @@ async def get_qcm_by_use(request_use:Request_Use,Authorization:str = Header())->
                       401 : {"description":"User password incorrect"},
                       400: {"description": "Not enougth questions " }},
           tags=['question','admin'] )
-async def get_qcm_by_subjects(resquest_subjects: Request_Subjects ,Authorization:str = Header())-> list[Question]:
+async def get_qcm_by_subjects(resquest_subjects: Request_Subjects ,Authorization:str = Header())-> List[Question]:
     """Retourne toutes les questions disponible pour une liste de sujet donnée"""
     user,password = Authorization.split(':')
     if not check_usrpwd(user,password):
