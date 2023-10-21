@@ -141,7 +141,7 @@ with tab4:
 
 
     if st.button("Requêter",key='req_use'):
-        response = requests.get("http://{ip_server}:8000/questions/use",
+        response = requests.get(f"http://{ip_server}:8000/questions/use",
                                 headers={"accept":"application//json",
                                          "Authorization":f"{username}:{password}",
                                          'Content-Type': 'application/json'},
