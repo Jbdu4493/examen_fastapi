@@ -66,6 +66,11 @@ def check_usrpwd(user_name,user_password):
     return password == user_password
 
 
+@api.get("/" ,
+          name = "Check Status" )
+async def chek_status():
+    return {"detail":'UP'}
+
 @api.post("/users" ,
           name = "Creation d'un utilisateur",
           responses ={200: {"description": "OK"},
