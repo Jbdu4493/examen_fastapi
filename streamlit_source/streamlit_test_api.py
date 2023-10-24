@@ -3,12 +3,13 @@ import requests
 import pandas as pd
 import json
 
+ip_server ="api_question"
 # Initialise le volet gauche
 st.sidebar.title("Connexion")
 
 username = st.sidebar.text_input("Nom d'utilisateur",value="admin")
 password = st.sidebar.text_input("Mot de passe",value='4dm1N' ,type="password")
-ip_server = st.sidebar.text_input("adresse IP du server de API",value='localhost')
+
 tab1, tab2, tab3,tab4,tab5,tab6,tab7 = st.tabs(['**Introduction**',
                               "**Voir les questions**",
                               "**Créer question**",
@@ -141,7 +142,7 @@ with tab4:
 
 
     if st.button("Requêter",key='req_use'):
-        response = requests.get("http://{ip_server}:8000/questions/use",
+        response = requests.get(f"http://{ip_server}:8000/questions/use",
                                 headers={"accept":"application//json",
                                          "Authorization":f"{username}:{password}",
                                          'Content-Type': 'application/json'},

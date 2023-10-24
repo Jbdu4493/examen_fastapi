@@ -1,0 +1,22 @@
+version: '3.5'
+networks:
+  api_question_network:
+services:
+  API:
+    build: ./api_source/
+    image: api_question:latest
+    container_name: api_question
+    ports:
+      - "8001:8000"
+    networks:
+      - api_question_network
+  Streamlit:
+    depends_on:
+      - API
+    build: ./streamlit_source/
+    image: streamlit_api:latest
+    container_name: streamlit_api_question
+    ports:
+      - "7001:7000"
+    networks:
+      - api_question_network
